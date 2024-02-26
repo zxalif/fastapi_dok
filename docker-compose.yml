@@ -1,0 +1,38 @@
+version: "3.8"
+
+services:
+  mysql: 
+    image: mysql:latest
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: mydatabase
+    ports:
+      - "3306:3306"
+  mongo:
+    image: mongo:latest
+    restart: always
+    ports: 
+      - "27017:27017"
+  fastapi:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    ports: 
+      - "8000:8000"
+    depends_on:
+      - mysql
+      - mongo
+
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    volumes:
+      - .:/app
+    command: pytest
+    depends_on:
+      - fastapi
